@@ -8,10 +8,11 @@ const {
   createTask,
   updateTask,
   replaceTask,
-  deleteTask
+  deleteTask,
+  toggleTask,
 } = require("../controllers/taskController");
 
-// validation برای POST
+
 const createTaskValidation = [
   validator
     .body("title")
@@ -31,7 +32,7 @@ const createTaskValidation = [
     .withMessage("attachmentPath must be a string")
 ];
 
-// validation برای PATCH و PUT
+
 const updateTaskValidation = [
   validator
     .body("title")
@@ -54,6 +55,7 @@ const updateTaskValidation = [
 
 router.get("/", getAllTasks);
 router.post("/", createTaskValidation, createTask);
+router.patch("/:id/toggle", toggleTask);
 router.get("/:id", getTaskById);
 router.put("/:id", updateTaskValidation, replaceTask);
 router.patch("/:id", updateTaskValidation, updateTask);

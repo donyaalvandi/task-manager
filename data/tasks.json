@@ -12,5 +12,12 @@
     "completed": false,
     "createdAt": "2026-09-11T09:20:04.435Z",
     "attachmentPath": null
+  },
+  {
+    "id": 4,
+    "title": "Task with Attachment",
+    "completed": false,
+    "createdAt": "2026-09-11T11:48:05.885Z",
+    "attachmentPath": "test.txt"
   }
 ]

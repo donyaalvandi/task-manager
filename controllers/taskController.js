@@ -95,7 +95,7 @@ const createTask = (req, res) => {
     });
   }
 
-  const { title, attachmentPath } = req.body;
+  const { title, completed, attachmentPath } = req.body;   // ← تغییر ۱
 
   const tasks = readTasksFromFile();
   const maxId = tasks.reduce((max, task) => Math.max(max, task.id), 0);
@@ -103,7 +103,7 @@ const createTask = (req, res) => {
   const newTask = {
     id: maxId + 1,
     title: title,
-    completed: false,
+    completed: completed === undefined ? false : completed,  // ← تغییر ۲
     createdAt: new Date().toISOString(),
     attachmentPath: attachmentPath || null
   };
@@ -218,11 +218,36 @@ const deleteTask = (req, res) => {
   res.json({ message: "Task deleted successfully", task: deletedTask[0] });
 };
 
+const toggleTask = (req, res) => {
+  const id = parseInt(req.params.id);
+
+  if (isNaN(id)) {
+    return res.status(400).json({
+      status: 400,
+      message: "Task ID must be a valid number",
+    });
+  }
+
+  const tasks = readTasksFromFile();
+  const index = findTaskIndex(tasks, id);
+
+  if (index === -1) {
+    customError("Task not found", 404);
+  }
+
+
+  tasks[index].completed = !tasks[index].completed;
+
+  writeTasksToFile(tasks);
+  res.json(tasks[index]);
+};
+
 module.exports = {
   getAllTasks,
   getTaskById,
   createTask,
   updateTask,
   replaceTask,
-  deleteTask
+  deleteTask,
+  toggleTask,
 };
