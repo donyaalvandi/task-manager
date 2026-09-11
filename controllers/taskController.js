@@ -5,12 +5,20 @@ const { customError } = require("../utils/errorHandler");
 
 const tasksFilePath = path.join(__dirname, "../data/tasks.json");
 
+// ==================== Helper Functions ====================
+
 const readTasksFromFile = () => {
+  if (!fs.existsSync(tasksFilePath)) {
+    return [];
+  }
   try {
     const data = fs.readFileSync(tasksFilePath, "utf8");
     return JSON.parse(data);
   } catch (error) {
-    return [];
+    console.error("Failed to read tasks file:", error.message);
+    const readError = new Error("Failed to read tasks data");
+    readError.statusCode = 500;
+    throw readError;
   }
 };
 
@@ -22,12 +30,20 @@ const findTaskIndex = (tasks, id) => {
   return tasks.findIndex(task => task.id === id);
 };
 
+// ==================== Controllers ====================
+
 const getAllTasks = (req, res) => {
   const tasks = readTasksFromFile();
   const { completed, search } = req.query;
   let filteredTasks = tasks;
 
   if (completed !== undefined) {
+    if (completed !== "true" && completed !== "false") {
+      return res.status(400).json({
+        status: 400,
+        message: "Query param 'completed' must be 'true' or 'false'",
+      });
+    }
     const isCompleted = completed === "true";
     filteredTasks = filteredTasks.filter(task => task.completed === isCompleted);
   }
@@ -44,6 +60,14 @@ const getAllTasks = (req, res) => {
 
 const getTaskById = (req, res) => {
   const id = parseInt(req.params.id);
+
+  if (isNaN(id)) {
+    return res.status(400).json({
+      status: 400,
+      message: "Task ID must be a valid number",
+    });
+  }
+
   const tasks = readTasksFromFile();
   const task = tasks.find(task => task.id === id);
 
@@ -51,11 +75,18 @@ const getTaskById = (req, res) => {
     customError("Task not found", 404);
   }
 
-  res.json(task);
+  const baseUrl = `${req.protocol}://${req.get("host")}`;
+  const responseTask = {
+    ...task,
+    attachmentUrl: task.attachmentPath
+      ? `${baseUrl}/files/${task.attachmentPath}`
+      : null,
+  };
+
+  res.json(responseTask);
 };
 
 const createTask = (req, res) => {
-  // ✅ چک کردن validation
   const errors = validator.validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(422).json({
@@ -84,7 +115,6 @@ const createTask = (req, res) => {
 };
 
 const updateTask = (req, res) => {
-  // ✅ چک کردن validation
   const errors = validator.validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(422).json({
@@ -94,6 +124,14 @@ const updateTask = (req, res) => {
   }
 
   const id = parseInt(req.params.id);
+
+  if (isNaN(id)) {
+    return res.status(400).json({
+      status: 400,
+      message: "Task ID must be a valid number",
+    });
+  }
+
   const { title, completed, attachmentPath } = req.body;
 
   const tasks = readTasksFromFile();
@@ -111,8 +149,61 @@ const updateTask = (req, res) => {
   res.json(tasks[index]);
 };
 
+const replaceTask = (req, res) => {
+  const errors = validator.validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
+      status: 422,
+      errors: errors.array(),
+    });
+  }
+
+  const id = parseInt(req.params.id);
+
+  if (isNaN(id)) {
+    return res.status(400).json({
+      status: 400,
+      message: "Task ID must be a valid number",
+    });
+  }
+
+  const { title, completed, attachmentPath } = req.body;
+
+  if (title === undefined) {
+    return res.status(422).json({
+      status: 422,
+      message: "title is required for PUT (full replacement)",
+    });
+  }
+
+  const tasks = readTasksFromFile();
+  const index = findTaskIndex(tasks, id);
+
+  if (index === -1) {
+    customError("Task not found", 404);
+  }
+
+  tasks[index] = {
+    id: tasks[index].id,
+    title: title,
+    completed: completed === undefined ? false : completed,
+    createdAt: tasks[index].createdAt,
+    attachmentPath: attachmentPath === undefined ? null : attachmentPath,
+  };
+
+  writeTasksToFile(tasks);
+  res.json(tasks[index]);
+};
+
 const deleteTask = (req, res) => {
   const id = parseInt(req.params.id);
+
+  if (isNaN(id)) {
+    return res.status(400).json({
+      status: 400,
+      message: "Task ID must be a valid number",
+    });
+  }
 
   const tasks = readTasksFromFile();
   const index = findTaskIndex(tasks, id);
@@ -132,5 +223,6 @@ module.exports = {
   getTaskById,
   createTask,
   updateTask,
+  replaceTask,
   deleteTask
 };

@@ -10,13 +10,18 @@ Each task has the following fields:
 
 ## 2. API Routes
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| GET | `/api/tasks` | Get all tasks |
-| GET | `/api/tasks/:id` | Get a specific task |
-| POST | `/api/tasks` | Create a new task |
-| PATCH | `/api/tasks/:id` | Update a task |
-| DELETE | `/api/tasks/:id` | Delete a task |
+| Method | Path | Purpose | Success | Failure |
+|--------|------|---------|---------|---------|
+| GET | `/api/tasks` | Get all tasks (filter, search, pagination) | 200 | 400 |
+| GET | `/api/tasks/:id` | Get a specific task | 200 | 400, 404 |
+| POST | `/api/tasks` | Create a new task | 201 | 422 |
+| PUT | `/api/tasks/:id` | Replace a task (full) | 200 | 400, 404, 422 |
+| PATCH | `/api/tasks/:id` | Update a task (partial) | 200 | 400, 404, 422 |
+| PATCH | `/api/tasks/:id/toggle` | Toggle completed | 200 | 400, 404 |
+| DELETE | `/api/tasks/:id` | Delete a task | 200 | 400, 404 |
+
+## 3. Folder Structure
+
 
 ## 3. Folder Structure
 
@@ -24,20 +29,26 @@ Each task has the following fields:
 task-manager/
 ├── app.js
 ├── routes/
-│   └── taskRoutes.js
+│ └── taskRoutes.js
 ├── controllers/
-│   └── taskController.js
+│ └── taskController.js
+├── utils/
+│ └── errorHandler.js
 ├── data/
-│   └── tasks.js
+│ └── tasks.json
+├── uploads/
 └── DESIGN.md
 ```
+
 
 ## 4. Status Codes
 
 - `200 OK` — Request successful
 - `201 Created` — Task successfully created
-- `400 Bad Request` — Invalid request data
-- `404 Not Found` — Requested task does not exist
+- `400 Bad Request` — Invalid ID or query param
+- `404 Not Found` — Task or route not found
+- `422 Unprocessable Entity` — Validation failed
+- `500 Internal Server Error` — File I/O or unexpected error
 
 ## 5. Design Questions
 

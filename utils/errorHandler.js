@@ -4,13 +4,16 @@ const customError = (message = "Internal error", statusCode = 500) => {
   throw newError;
 };
 
-const errorMiddleWare = (error, request, response, next) => {
+const errorMiddleware = (error, request, response, next) => {
+  if (response.headersSent) {
+    return next(error);
+  }
   const statusCode = error.statusCode || 500;
-  console.log("err:", error.message, statusCode);
+  console.error("Error:", error.message, "Status:", statusCode);
   response.status(statusCode).json({
     status: statusCode,
     message: error.message,
   });
 };
 
-module.exports = { customError, errorMiddleWare };
+module.exports = { customError, errorMiddleware };

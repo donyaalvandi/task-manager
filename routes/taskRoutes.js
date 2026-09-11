@@ -7,10 +7,11 @@ const {
   getTaskById,
   createTask,
   updateTask,
+  replaceTask,
   deleteTask
 } = require("../controllers/taskController");
 
-// validation برای POST — همه‌ی فیلدها اجباری
+// validation برای POST
 const createTaskValidation = [
   validator
     .body("title")
@@ -30,7 +31,7 @@ const createTaskValidation = [
     .withMessage("attachmentPath must be a string")
 ];
 
-// validation برای PATCH — همه‌ی فیلدها اختیاری
+// validation برای PATCH و PUT
 const updateTaskValidation = [
   validator
     .body("title")
@@ -54,6 +55,7 @@ const updateTaskValidation = [
 router.get("/", getAllTasks);
 router.post("/", createTaskValidation, createTask);
 router.get("/:id", getTaskById);
+router.put("/:id", updateTaskValidation, replaceTask);
 router.patch("/:id", updateTaskValidation, updateTask);
 router.delete("/:id", deleteTask);
 
