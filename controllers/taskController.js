@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
-
+const validator = require("express-validator");
+const { customError } = require("../utils/errorHandler");
 
 const tasksFilePath = path.join(__dirname, "../data/tasks.json");
 
@@ -13,7 +14,6 @@ const readTasksFromFile = () => {
   }
 };
 
-
 const writeTasksToFile = (tasks) => {
   fs.writeFileSync(tasksFilePath, JSON.stringify(tasks, null, 2), "utf8");
 };
@@ -22,21 +22,15 @@ const findTaskIndex = (tasks, id) => {
   return tasks.findIndex(task => task.id === id);
 };
 
-
 const getAllTasks = (req, res) => {
   const tasks = readTasksFromFile();
-
-
   const { completed, search } = req.query;
-
   let filteredTasks = tasks;
-
 
   if (completed !== undefined) {
     const isCompleted = completed === "true";
     filteredTasks = filteredTasks.filter(task => task.completed === isCompleted);
   }
-
 
   if (search) {
     const searchLower = search.toLowerCase();
@@ -54,18 +48,23 @@ const getTaskById = (req, res) => {
   const task = tasks.find(task => task.id === id);
 
   if (!task) {
-    return res.status(404).json({ message: "Task not found" });
+    customError("Task not found", 404);
   }
 
   res.json(task);
 };
 
 const createTask = (req, res) => {
-  const { title, attachmentPath } = req.body;
-
-  if (!title) {
-    return res.status(400).json({ message: "Title is required" });
+  // ✅ چک کردن validation
+  const errors = validator.validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
+      status: 422,
+      errors: errors.array()
+    });
   }
+
+  const { title, attachmentPath } = req.body;
 
   const tasks = readTasksFromFile();
   const maxId = tasks.reduce((max, task) => Math.max(max, task.id), 0);
@@ -85,6 +84,15 @@ const createTask = (req, res) => {
 };
 
 const updateTask = (req, res) => {
+  // ✅ چک کردن validation
+  const errors = validator.validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
+      status: 422,
+      errors: errors.array()
+    });
+  }
+
   const id = parseInt(req.params.id);
   const { title, completed, attachmentPath } = req.body;
 
@@ -92,7 +100,7 @@ const updateTask = (req, res) => {
   const index = findTaskIndex(tasks, id);
 
   if (index === -1) {
-    return res.status(404).json({ message: "Task not found" });
+    customError("Task not found", 404);
   }
 
   if (title !== undefined) tasks[index].title = title;
@@ -110,7 +118,7 @@ const deleteTask = (req, res) => {
   const index = findTaskIndex(tasks, id);
 
   if (index === -1) {
-    return res.status(404).json({ message: "Task not found" });
+    customError("Task not found", 404);
   }
 
   const deletedTask = tasks.splice(index, 1);
@@ -118,7 +126,6 @@ const deleteTask = (req, res) => {
 
   res.json({ message: "Task deleted successfully", task: deletedTask[0] });
 };
-
 
 module.exports = {
   getAllTasks,

@@ -1,0 +1,7 @@
+$kind: http-request
+url: http://localhost:3000/api/tasks/1
+method: PATCH
+body:
+  type: json
+  content: '{"completed": true}'
+order: 1870310001389172

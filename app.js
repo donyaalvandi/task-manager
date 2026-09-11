@@ -9,6 +9,9 @@ app.use("/files", express.static(path.join(__dirname, "uploads")));
 const taskRoutes = require("./routes/taskRoutes");
 app.use("/api/tasks", taskRoutes);
 
+const { errorMiddleWare } = require("./utils/errorHandler");
+app.use(errorMiddleWare);
+
 const port = 3000;
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
