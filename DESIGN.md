@@ -1,7 +1,6 @@
 # Task Manager API Design
 
 ## 1. Task Structure
-
 Each task has the following fields:
 - `id` (unique identifier)
 - `title` (task title)
@@ -25,20 +24,36 @@ Each task has the following fields:
 
 ## 3. Folder Structure
 
-```
 task-manager/
-├── app.js
-├── routes/
-│ └── taskRoutes.js
+├── .postman/
+│   └── resources.yaml
 ├── controllers/
-│ └── taskController.js
-├── utils/
-│ └── errorHandler.js
+│   └── taskController.js
 ├── data/
-│ └── tasks.json
+│   └── tasks.json
+├── node_modules/              (ignored by git)
+├── postman/
+│   ├── collections/
+│   │   └── Task Manager API/
+│   │       ├── Get All Tasks.request.yaml
+│   │       ├── Get Task by ID.request.yaml
+│   │       ├── Create Task.request.yaml
+│   │       ├── Update Task.request.yaml
+│   │       └── Delete Task.request.yaml
+│   ├── environments/
+│   └── globals/
+├── routes/
+│   └── taskRoutes.js
 ├── uploads/
-└── DESIGN.md
-```
+│   └── test.txt
+├── utils/
+│   └── errorHandler.js
+├── .gitignore
+├── app.js
+├── DESIGN.md
+├── package-lock.json
+├── package.json
+└── Retro.md
 
 
 ## 4. Status Codes
@@ -49,13 +64,3 @@ task-manager/
 - `404 Not Found` — Task or route not found
 - `422 Unprocessable Entity` — Validation failed
 - `500 Internal Server Error` — File I/O or unexpected error
-
-## 5. Design Questions
-
-### Why separate routes and controllers?
-
-چون روت ها مسیر رو مشخص میکنند ولی در کنترولر ها منطق نوشته میشود پس بهتره برای تمیزی کد این دو را از هم جدا کنیم.
-
-### What should happen if a task does not exist?
-
-باید 404 not found فرستاده شود چون منبع وجود ندارد .
